@@ -3,9 +3,13 @@ package api
 import "github.com/jplein/okhsl/types"
 
 func PublicStub() types.RGB {
+	r := 0.
+	g := 255.
+	b := 0.
+
 	return types.RGB{
-		R: 0.,
-		G: 255.,
-		B: 0.,
+		R: r,
+		G: g,
+		B: b,
 	}
 }

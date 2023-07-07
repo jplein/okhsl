@@ -1,10 +1,11 @@
-package okhsl
+package okhsl_test
 
 import (
 	"fmt"
 	"math"
 	"testing"
 
+	"github.com/jplein/okhsl/okhsl"
 	"github.com/jplein/okhsl/types"
 )
 
@@ -33,7 +34,7 @@ func TestOKHSLToSRGB(t *testing.T) {
 	s := 1.
 	l := 10. / 100.
 
-	actual := Okhsl_to_srgb(types.HSL{H: h, S: s, L: l})
+	actual := okhsl.OKHSLToSRGB(types.HSL{H: h, S: s, L: l})
 	// Expected values come from the JS implementation which returns r, g, and b
 	// between 0 and 255; our function, ported from C++, returns r, g, and b
 	// between 0 and
@@ -45,7 +46,7 @@ func TestOKHSLToSRGB(t *testing.T) {
 }
 
 func TestSRGBToOKHSL(t *testing.T) {
-	actual := Srgb_to_okhsl(types.RGB{R: 21. / 255., G: 0, B: 73. / 255.})
+	actual := okhsl.SRGBToOKHSL(types.RGB{R: 21. / 255., G: 0, B: 73. / 255.})
 	expected := []float64{0.78, 1.00, 0.10}
 
 	if !compare3Tuple(
