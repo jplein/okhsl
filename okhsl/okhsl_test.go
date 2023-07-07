@@ -4,6 +4,8 @@ import (
 	"fmt"
 	"math"
 	"testing"
+
+	"github.com/jplein/okhsl/types"
 )
 
 func compareFloat(actual, expected, epsilon float64) bool {
@@ -31,23 +33,23 @@ func TestOKHSLToSRGB(t *testing.T) {
 	s := 1.
 	l := 10. / 100.
 
-	actual := Okhsl_to_srgb(HSL{h: h, s: s, l: l})
+	actual := Okhsl_to_srgb(types.HSL{H: h, S: s, L: l})
 	// Expected values come from the JS implementation which returns r, g, and b
 	// between 0 and 255; our function, ported from C++, returns r, g, and b
 	// between 0 and
 	expected := []float64{21.025869038964053 / 255, 0.013077429697195551 / 255, 72.70843103040897 / 255}
 
-	if !compare3Tuple([]float64{actual.r, actual.g, actual.b}, expected, 0.001) {
+	if !compare3Tuple([]float64{actual.R, actual.G, actual.B}, expected, 0.001) {
 		t.Errorf("Unexpected value for 283 / 100 / 10: got '%s', expected '%s'", fmt.Sprint(actual), fmt.Sprint(expected))
 	}
 }
 
 func TestSRGBToOKHSL(t *testing.T) {
-	actual := Srgb_to_okhsl(RGB{21. / 255., 0, 73. / 255.})
+	actual := Srgb_to_okhsl(types.RGB{R: 21. / 255., G: 0, B: 73. / 255.})
 	expected := []float64{0.78, 1.00, 0.10}
 
 	if !compare3Tuple(
-		[]float64{actual.h, actual.s, actual.l},
+		[]float64{actual.H, actual.S, actual.L},
 		expected,
 		0.01,
 	) {

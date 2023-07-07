@@ -1,22 +1,16 @@
 package okhsl
 
-import "math"
+import (
+	"math"
+
+	"github.com/jplein/okhsl/types"
+)
 
 // Data types
 
-type HSL struct {
-	h float64
-	s float64
-	l float64
-}
 type Lab struct {
 	L float64
 	a float64
-	b float64
-}
-type RGB struct {
-	r float64
-	g float64
 	b float64
 }
 type Cs struct {
@@ -114,7 +108,7 @@ func compute_max_saturation(a, b float64) float64 {
 	return S
 }
 
-func oklab_to_linear_srgb(c Lab) RGB {
+func oklab_to_linear_srgb(c Lab) types.RGB {
 	l_ := c.L + 0.3963377774*c.a + 0.2158037573*c.b
 	m_ := c.L - 0.1055613458*c.a - 0.0638541728*c.b
 	s_ := c.L - 0.0894841775*c.a - 1.2914855480*c.b
@@ -123,10 +117,10 @@ func oklab_to_linear_srgb(c Lab) RGB {
 	m := m_ * m_ * m_
 	s := s_ * s_ * s_
 
-	rgb := RGB{
-		r: +4.0767416621*l - 3.3077115913*m + 0.2309699292*s,
-		g: -1.2684380046*l + 2.6097574011*m - 0.3413193965*s,
-		b: -0.0041960863*l - 0.7034186147*m + 1.7076147010*s,
+	rgb := types.RGB{
+		R: +4.0767416621*l - 3.3077115913*m + 0.2309699292*s,
+		G: -1.2684380046*l + 2.6097574011*m - 0.3413193965*s,
+		B: -0.0041960863*l - 0.7034186147*m + 1.7076147010*s,
 	}
 	return rgb
 }
@@ -137,7 +131,7 @@ func find_cusp(a, b float64) LC {
 
 	// Convert to linear sRGB to find the first point where at least one of r,g or b >= 1:
 	rgb_at_max := oklab_to_linear_srgb(Lab{1, S_cusp * a, S_cusp * b})
-	L_cusp := math.Cbrt(1.0 / math.Max(math.Max(rgb_at_max.r, rgb_at_max.g), rgb_at_max.b))
+	L_cusp := math.Cbrt(1.0 / math.Max(math.Max(rgb_at_max.R, rgb_at_max.G), rgb_at_max.B))
 	C_cusp := L_cusp * S_cusp
 
 	return LC{L_cusp, C_cusp}
@@ -315,15 +309,15 @@ func srgb_transfer_function_inv(a float64) float64 {
 	}
 }
 
-func Okhsl_to_srgb(hsl HSL) RGB {
-	h := hsl.h
-	s := hsl.s
-	l := hsl.l
+func Okhsl_to_srgb(hsl types.HSL) types.RGB {
+	h := hsl.H
+	s := hsl.S
+	l := hsl.L
 
 	if l == 1.0 {
-		return RGB{1.0, 1.0, 1.0}
+		return types.RGB{R: 1.0, G: 1.0, B: 1.0}
 	} else if l == 0.0 {
-		return RGB{0.0, 0.0, 0.0}
+		return types.RGB{R: 0.0, G: 0.0, B: 0.0}
 	}
 
 	a_ := math.Cos(2.0 * math.Pi * h)
@@ -363,18 +357,18 @@ func Okhsl_to_srgb(hsl HSL) RGB {
 	}
 
 	rgb := oklab_to_linear_srgb(Lab{L, C * a_, C * b_})
-	rgb_ := RGB{
-		srgb_transfer_function(rgb.r),
-		srgb_transfer_function(rgb.g),
-		srgb_transfer_function(rgb.b),
+	rgb_ := types.RGB{
+		R: srgb_transfer_function(rgb.R),
+		G: srgb_transfer_function(rgb.G),
+		B: srgb_transfer_function(rgb.B),
 	}
 	return rgb_
 }
 
-func linear_srgb_to_oklab(c RGB) Lab {
-	l := 0.4122214708*c.r + 0.5363325363*c.g + 0.0514459929*c.b
-	m := 0.2119034982*c.r + 0.6806995451*c.g + 0.1073969566*c.b
-	s := 0.0883024619*c.r + 0.2817188376*c.g + 0.6299787005*c.b
+func linear_srgb_to_oklab(c types.RGB) Lab {
+	l := 0.4122214708*c.R + 0.5363325363*c.G + 0.0514459929*c.B
+	m := 0.2119034982*c.R + 0.6806995451*c.G + 0.1073969566*c.B
+	s := 0.0883024619*c.R + 0.2817188376*c.G + 0.6299787005*c.B
 
 	l_ := math.Cbrt(l)
 	m_ := math.Cbrt(m)
@@ -395,11 +389,11 @@ func toe(x float64) float64 {
 	return 0.5 * (k_3*x - k_1 + math.Sqrt((k_3*x-k_1)*(k_3*x-k_1)+4*k_2*k_3*x))
 }
 
-func Srgb_to_okhsl(rgb RGB) HSL {
-	lab := linear_srgb_to_oklab(RGB{
-		srgb_transfer_function_inv(rgb.r),
-		srgb_transfer_function_inv(rgb.g),
-		srgb_transfer_function_inv(rgb.b),
+func Srgb_to_okhsl(rgb types.RGB) types.HSL {
+	lab := linear_srgb_to_oklab(types.RGB{
+		R: srgb_transfer_function_inv(rgb.R),
+		G: srgb_transfer_function_inv(rgb.G),
+		B: srgb_transfer_function_inv(rgb.B),
 	})
 
 	C := math.Sqrt(lab.a*lab.a + lab.b*lab.b)
@@ -436,5 +430,5 @@ func Srgb_to_okhsl(rgb RGB) HSL {
 	}
 
 	l := toe(L)
-	return HSL{h, s, l}
+	return types.HSL{H: h, S: s, L: l}
 }
