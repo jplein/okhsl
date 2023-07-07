@@ -381,19 +381,19 @@ func computeMaxSaturation(a, b float64) float64 {
 	ks := -0.0894841775*a - 1.2914855480*b
 
 	{
-		lPrime := 1. + S*kl
+		l_ := 1. + S*kl
 		m_ := 1. + S*km
 		s_ := 1. + S*ks
 
-		l := lPrime * lPrime * lPrime
+		l := l_ * l_ * l_
 		m := m_ * m_ * m_
 		s := s_ * s_ * s_
 
-		ldS := 3. * kl * lPrime * lPrime
+		ldS := 3. * kl * l_ * l_
 		mdS := 3. * km * m_ * m_
 		sdS := 3. * ks * s_ * s_
 
-		ldS2 := 6. * kl * kl * lPrime
+		ldS2 := 6. * kl * kl * l_
 		mdS2 := 6. * km * km * m_
 		sdS2 := 6. * ks * ks * s_
 
