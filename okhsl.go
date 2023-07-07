@@ -1,6 +1,14 @@
 package okhsl
 
-import "math"
+import (
+	"errors"
+	"fmt"
+	"math"
+	"strconv"
+)
+
+var errOutOfBounds = errors.New("out of bounds")
+var errInvalidHexString = errors.New("invalid hex string")
 
 // Public data types
 
@@ -12,12 +20,164 @@ type HSLNormalized struct {
 	L float64
 }
 
+func (h HSLNormalized) ToHSL() HSL {
+	return HSL{
+		H: h.H * 360,
+		S: h.S * 100,
+		L: h.L * 100,
+	}
+}
+
+func (h HSLNormalized) Validate() error {
+	if h.H < 0 || h.H > 1. {
+		return getOutOfBoundsError("H", 0., 1., h.H)
+	}
+
+	if h.S < 0 || h.S > 1. {
+		return getOutOfBoundsError("S", 0., 1., h.S)
+	}
+
+	if h.L < 0 || h.L > 1. {
+		return getOutOfBoundsError("L", 0., 1., h.L)
+	}
+
+	return nil
+}
+
+// HSL colorspace which may feel more natural to humans:
+// H - ranges from 0 to 360
+// S - ranges from 0 to 100
+// L - ranges from 0 to 100
+
+type HSL struct {
+	H float64
+	S float64
+	L float64
+}
+
+func (h HSL) ToHSLNormalized() HSLNormalized {
+	return HSLNormalized{
+		H: h.H / 360,
+		S: h.S / 100,
+		L: h.L / 100,
+	}
+}
+
+func (h HSL) Validate() error {
+	if h.H < 0 || h.H > 360. {
+		return getOutOfBoundsError("H", 0., 360., h.H)
+	}
+
+	if h.S < 0 || h.S > 100. {
+		return getOutOfBoundsError("S", 0., 100., h.S)
+	}
+
+	if h.L < 0 || h.L > 100. {
+		return getOutOfBoundsError("L", 0., 100., h.L)
+	}
+
+	return nil
+}
+
 // RGB colorspace, normalized to values between 0 and 1
 
 type RGBNormalized struct {
 	R float64
 	G float64
 	B float64
+}
+
+func (r RGBNormalized) ToRGB() RGB {
+	return RGB{
+		R: r.R * 255,
+		G: r.G * 255,
+		B: r.B * 255,
+	}
+}
+
+func (r RGBNormalized) Validate() error {
+	if r.R < 0 || r.R > 1. {
+		return getOutOfBoundsError("R", 0., 1., r.R)
+	}
+
+	if r.G < 0 || r.G > 1. {
+		return getOutOfBoundsError("G", 0., 1., r.G)
+	}
+
+	if r.B < 0 || r.B > 1. {
+		return getOutOfBoundsError("B", 0., 1., r.B)
+	}
+
+	return nil
+}
+
+// RGB colorspace which may feel more natural to humans:
+// R - ranges from 0 to 255
+// G - ranges from 0 to 255
+// B - ranges from 0 to 255
+
+type RGB struct {
+	R float64
+	G float64
+	B float64
+}
+
+func (r RGB) ToRGBNormalized() RGBNormalized {
+	return RGBNormalized{
+		R: r.R / 255,
+		G: r.G / 255,
+		B: r.B / 255,
+	}
+}
+
+func (r RGB) Validate() error {
+	if r.R < 0 || r.R > 255. {
+		return getOutOfBoundsError("R", 0., 255., r.R)
+	}
+
+	if r.G < 0 || r.G > 255. {
+		return getOutOfBoundsError("G", 0., 255., r.G)
+	}
+
+	if r.B < 0 || r.B > 255. {
+		return getOutOfBoundsError("B", 0., 255., r.B)
+	}
+
+	return nil
+}
+
+func (r RGB) ToHex() string {
+	rInt := int(math.Round(r.R))
+	gInt := int(math.Round(r.G))
+	bInt := int(math.Round(r.B))
+
+	c := rInt<<16 + gInt<<8 + bInt
+
+	return fmt.Sprintf("#%6x", c)
+}
+
+func (r *RGB) FromHex(hex string) error {
+	if len(hex) != 7 {
+		return fmt.Errorf("%w: %s: expected a string of 7 hex characters preceded by a # character", errInvalidHexString, hex)
+	}
+
+	if hex[0] != '#' {
+		return fmt.Errorf("%w: %s: expected first character to be a #", errInvalidHexString, hex)
+	}
+
+	hexNum := hex[1:]
+
+	c, err := strconv.ParseInt(hexNum, 16, 64)
+
+	if err != nil {
+		return fmt.Errorf("%w: %s: %w", errInvalidHexString, hex, err)
+	}
+
+	r.R = float64((c & 0xff0000) >> 16)
+	r.G = float64((c & 0x00ff00) >> 8)
+	r.B = float64((c & 0x0000ff) >> 0)
+
+	return nil
 }
 
 // Public functions
@@ -147,6 +307,10 @@ type st struct {
 }
 
 // Private functions
+
+func getOutOfBoundsError(desc string, min, max, value float64) error {
+	return fmt.Errorf("%w: %s: expected value in range %f to %f but found %f", errOutOfBounds, desc, min, max, value)
+}
 
 // Finds the maximum saturation possible for a given hue that fits in sRGB
 // Saturation here is defined as S = C/L

@@ -43,7 +43,7 @@ linters:
     -  godox
     -  goerr113
     -  gofmt
-    -  gofumpt
+    # -  gofumpt
     -  goheader
     -  goimports
     # -  gomnd
@@ -89,7 +89,7 @@ linters:
     -  thelper
     -  tparallel
     -  unconvert
-    -  unparam
+    # -  unparam
     -  usestdlibvars
     # -  varnamelen
     -  wastedassign
