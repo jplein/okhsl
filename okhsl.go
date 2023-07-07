@@ -187,6 +187,24 @@ func (r *RGB) FromHex(hex string) error {
 
 // Public functions
 
+func OKHSLToSRGB(hsl HSL) (RGB, error) {
+	err := hsl.Validate()
+	if err != nil {
+		return RGB{}, err
+	}
+
+	hsl_ := hsl.ToHSLNormalized()
+
+	rgb_, err := OKHSLToSRGBNormalized(hsl_)
+	if err != nil {
+		return RGB{}, err
+	}
+
+	rgb := rgb_.ToRGB()
+
+	return rgb, nil
+}
+
 func OKHSLToSRGBNormalized(hsl HSLNormalized) (RGBNormalized, error) {
 	err := hsl.Validate()
 
@@ -248,6 +266,24 @@ func OKHSLToSRGBNormalized(hsl HSLNormalized) (RGBNormalized, error) {
 	}
 
 	return rgb_, nil
+}
+
+func SRGBToOKHSL(rgb RGB) (HSL, error) {
+	err := rgb.Validate()
+	if err != nil {
+		return HSL{}, err
+	}
+
+	rgb_ := rgb.ToRGBNormalized()
+
+	hsl_, err := SRGBToOKHSLNormalized(rgb_)
+	if err != nil {
+		return HSL{}, err
+	}
+
+	hsl := hsl_.ToHSL()
+
+	return hsl, nil
 }
 
 func SRGBToOKHSLNormalized(rgb RGBNormalized) (HSLNormalized, error) {
