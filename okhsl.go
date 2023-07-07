@@ -182,7 +182,7 @@ func (r RGB) ToHex() (string, error) {
 
 	c := rInt<<16 + gInt<<8 + bInt
 
-	return fmt.Sprintf("#%6x", c), nil
+	return fmt.Sprintf("#%06x", c), nil
 }
 
 func (r *RGB) FromHex(hex string) error {
