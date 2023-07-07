@@ -4,13 +4,17 @@ import "math"
 
 // Public data types
 
-type HSL struct {
+// HSL colorspace, normalized to values between 0 and 1
+
+type HSLNormalized struct {
 	H float64
 	S float64
 	L float64
 }
 
-type RGB struct {
+// RGB colorspace, normalized to values between 0 and 1
+
+type RGBNormalized struct {
 	R float64
 	G float64
 	B float64
@@ -18,15 +22,15 @@ type RGB struct {
 
 // Public functions
 
-func OKHSLToSRGB(hsl HSL) RGB {
+func OKHSLToSRGBNormalized(hsl HSLNormalized) RGBNormalized {
 	h := hsl.H
 	s := hsl.S
 	l := hsl.L
 
 	if l == 1.0 {
-		return RGB{R: 1.0, G: 1.0, B: 1.0}
+		return RGBNormalized{R: 1.0, G: 1.0, B: 1.0}
 	} else if l == 0.0 {
-		return RGB{R: 0.0, G: 0.0, B: 0.0}
+		return RGBNormalized{R: 0.0, G: 0.0, B: 0.0}
 	}
 
 	a_ := math.Cos(2.0 * math.Pi * h)
@@ -66,7 +70,7 @@ func OKHSLToSRGB(hsl HSL) RGB {
 	}
 
 	rgb := oklabToLinearSRGB(lab{L, C * a_, C * b_})
-	rgb_ := RGB{
+	rgb_ := RGBNormalized{
 		R: srgbTransferFunction(rgb.R),
 		G: srgbTransferFunction(rgb.G),
 		B: srgbTransferFunction(rgb.B),
@@ -75,8 +79,8 @@ func OKHSLToSRGB(hsl HSL) RGB {
 	return rgb_
 }
 
-func SRGBToOKHSL(rgb RGB) HSL {
-	lab := linearSGBToOKLAB(RGB{
+func SRGBToOKHSLNormalized(rgb RGBNormalized) HSLNormalized {
+	lab := linearSGBToOKLAB(RGBNormalized{
 		R: srgbTransferFunctionInv(rgb.R),
 		G: srgbTransferFunctionInv(rgb.G),
 		B: srgbTransferFunctionInv(rgb.B),
@@ -118,7 +122,7 @@ func SRGBToOKHSL(rgb RGB) HSL {
 
 	l := toe(L)
 
-	return HSL{H: h, S: s, L: l}
+	return HSLNormalized{H: h, S: s, L: l}
 }
 
 // Private data types
@@ -223,7 +227,7 @@ func computeMaxSaturation(a, b float64) float64 {
 	return S
 }
 
-func oklabToLinearSRGB(c lab) RGB {
+func oklabToLinearSRGB(c lab) RGBNormalized {
 	l_ := c.l + 0.3963377774*c.a + 0.2158037573*c.b
 	m_ := c.l - 0.1055613458*c.a - 0.0638541728*c.b
 	s_ := c.l - 0.0894841775*c.a - 1.2914855480*c.b
@@ -232,7 +236,7 @@ func oklabToLinearSRGB(c lab) RGB {
 	m := m_ * m_ * m_
 	s := s_ * s_ * s_
 
-	rgb := RGB{
+	rgb := RGBNormalized{
 		R: +4.0767416621*l - 3.3077115913*m + 0.2309699292*s,
 		G: -1.2684380046*l + 2.6097574011*m - 0.3413193965*s,
 		B: -0.0041960863*l - 0.7034186147*m + 1.7076147010*s,
@@ -426,7 +430,7 @@ func srgbTransferFunctionInv(a float64) float64 {
 	}
 }
 
-func linearSGBToOKLAB(c RGB) lab {
+func linearSGBToOKLAB(c RGBNormalized) lab {
 	l := 0.4122214708*c.R + 0.5363325363*c.G + 0.0514459929*c.B
 	m := 0.2119034982*c.R + 0.6806995451*c.G + 0.1073969566*c.B
 	s := 0.0883024619*c.R + 0.2817188376*c.G + 0.6299787005*c.B
