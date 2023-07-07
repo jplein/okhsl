@@ -27,19 +27,30 @@ func compare3Tuple(actual, expected []float64, epsilon float64) bool {
 }
 
 func TestOKHSLToSRGB(t *testing.T) {
-	actual := OKHSLToSRGB(283.0/360.0, 100.0/100.0, 10.0/100.0)
-	expected := []float64{21.025869038964053, 0.013077429697195551, 72.70843103040897}
+	h := 283. / 360.
+	s := 1.
+	l := 10. / 100.
 
-	if !compare3Tuple(actual, expected, 0.001) {
+	actual := Okhsl_to_srgb(HSL{h: h, s: s, l: l})
+	// Expected values come from the JS implementation which returns r, g, and b
+	// between 0 and 255; our function, ported from C++, returns r, g, and b
+	// between 0 and
+	expected := []float64{21.025869038964053 / 255, 0.013077429697195551 / 255, 72.70843103040897 / 255}
+
+	if !compare3Tuple([]float64{actual.r, actual.g, actual.b}, expected, 0.001) {
 		t.Errorf("Unexpected value for 283 / 100 / 10: got '%s', expected '%s'", fmt.Sprint(actual), fmt.Sprint(expected))
 	}
 }
 
 func TestSRGBToOKHSL(t *testing.T) {
-	actual := SRGBToOKHSL(21, 0, 73)
+	actual := Srgb_to_okhsl(RGB{21. / 255., 0, 73. / 255.})
 	expected := []float64{0.78, 1.00, 0.10}
 
-	if !compare3Tuple(actual, expected, 0.01) {
+	if !compare3Tuple(
+		[]float64{actual.h, actual.s, actual.l},
+		expected,
+		0.01,
+	) {
 		t.Errorf("Unexpected value for [141, 43, 16]: Expected %s but found %s", fmt.Sprint(expected), fmt.Sprint(actual))
 	}
 }
