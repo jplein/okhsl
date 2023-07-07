@@ -44,6 +44,12 @@ func (h HSLNormalized) Validate() error {
 	return nil
 }
 
+func (h *HSLNormalized) Clamp() {
+	h.H = clamp(0., 1., h.H)
+	h.S = clamp(0., 1., h.S)
+	h.L = clamp(0., 1., h.L)
+}
+
 // HSL colorspace which may feel more natural to humans:
 // H - ranges from 0 to 360
 // S - ranges from 0 to 100
@@ -79,6 +85,12 @@ func (h HSL) Validate() error {
 	return nil
 }
 
+func (h *HSL) Clamp() {
+	h.H = clamp(0., 360., h.H)
+	h.S = clamp(0., 100., h.S)
+	h.L = clamp(0., 100., h.L)
+}
+
 // RGB colorspace, normalized to values between 0 and 1
 
 type RGBNormalized struct {
@@ -109,6 +121,12 @@ func (r RGBNormalized) Validate() error {
 	}
 
 	return nil
+}
+
+func (r *RGBNormalized) Clamp() {
+	r.R = clamp(0., 1., r.R)
+	r.G = clamp(0., 1., r.G)
+	r.B = clamp(0., 1., r.B)
 }
 
 // RGB colorspace which may feel more natural to humans:
@@ -144,6 +162,12 @@ func (r RGB) Validate() error {
 	}
 
 	return nil
+}
+
+func (r *RGB) Clamp() {
+	r.R = clamp(0., 255., r.R)
+	r.G = clamp(0., 255., r.G)
+	r.B = clamp(0., 255., r.B)
 }
 
 func (r RGB) ToHex() (string, error) {
@@ -201,6 +225,7 @@ func OKHSLToSRGB(hsl HSL) (RGB, error) {
 	}
 
 	rgb := rgb_.ToRGB()
+	rgb.Clamp()
 
 	return rgb, nil
 }
@@ -265,6 +290,8 @@ func OKHSLToSRGBNormalized(hsl HSLNormalized) (RGBNormalized, error) {
 		B: srgbTransferFunction(rgb.B),
 	}
 
+	rgb_.Clamp()
+
 	return rgb_, nil
 }
 
@@ -282,6 +309,7 @@ func SRGBToOKHSL(rgb RGB) (HSL, error) {
 	}
 
 	hsl := hsl_.ToHSL()
+	hsl.Clamp()
 
 	return hsl, nil
 }
@@ -334,7 +362,10 @@ func SRGBToOKHSLNormalized(rgb RGBNormalized) (HSLNormalized, error) {
 
 	l := toe(L)
 
-	return HSLNormalized{H: h, S: s, L: l}, nil
+	hsl_ := HSLNormalized{H: h, S: s, L: l}
+	hsl_.Clamp()
+
+	return hsl_, nil
 }
 
 // Private data types
@@ -362,6 +393,18 @@ type st struct {
 
 func getOutOfBoundsError(desc string, min, max, value float64) error {
 	return fmt.Errorf("%w: %s: expected value in range %f to %f but found %f", errOutOfBounds, desc, min, max, value)
+}
+
+func clamp(min, max, value float64) float64 {
+	if value < min {
+		return min
+	}
+
+	if value > max {
+		return max
+	}
+
+	return value
 }
 
 // Finds the maximum saturation possible for a given hue that fits in sRGB
