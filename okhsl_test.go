@@ -92,7 +92,11 @@ func TestOKHSLToSRGB(t *testing.T) {
 	s := 1.
 	l := 10. / 100.
 
-	actual := okhsl.OKHSLToSRGBNormalized(okhsl.HSLNormalized{H: h, S: s, L: l})
+	actual, err := okhsl.OKHSLToSRGBNormalized(okhsl.HSLNormalized{H: h, S: s, L: l})
+	if err != nil {
+		t.Errorf("unexpected error converting HSL to RGB: %s", err.Error())
+	}
+
 	// Expected values come from the JS implementation which returns r, g, and b
 	// between 0 and 255; our function, ported from C++, returns r, g, and b
 	// between 0 and
@@ -104,7 +108,11 @@ func TestOKHSLToSRGB(t *testing.T) {
 }
 
 func TestSRGBToOKHSL(t *testing.T) {
-	actual := okhsl.SRGBToOKHSLNormalized(okhsl.RGBNormalized{R: 21. / 255., G: 0, B: 73. / 255.})
+	actual, err := okhsl.SRGBToOKHSLNormalized(okhsl.RGBNormalized{R: 21. / 255., G: 0, B: 73. / 255.})
+	if err != nil {
+		t.Errorf("unexpected error converting RGB to HSL: %s", err.Error())
+	}
+
 	expected := []float64{0.78, 1.00, 0.10}
 
 	if !compare3Tuple(

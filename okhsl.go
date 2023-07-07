@@ -187,15 +187,21 @@ func (r *RGB) FromHex(hex string) error {
 
 // Public functions
 
-func OKHSLToSRGBNormalized(hsl HSLNormalized) RGBNormalized {
+func OKHSLToSRGBNormalized(hsl HSLNormalized) (RGBNormalized, error) {
+	err := hsl.Validate()
+
+	if err != nil {
+		return RGBNormalized{}, err
+	}
+
 	h := hsl.H
 	s := hsl.S
 	l := hsl.L
 
 	if l == 1.0 {
-		return RGBNormalized{R: 1.0, G: 1.0, B: 1.0}
+		return RGBNormalized{R: 1.0, G: 1.0, B: 1.0}, nil
 	} else if l == 0.0 {
-		return RGBNormalized{R: 0.0, G: 0.0, B: 0.0}
+		return RGBNormalized{R: 0.0, G: 0.0, B: 0.0}, nil
 	}
 
 	a_ := math.Cos(2.0 * math.Pi * h)
@@ -241,10 +247,15 @@ func OKHSLToSRGBNormalized(hsl HSLNormalized) RGBNormalized {
 		B: srgbTransferFunction(rgb.B),
 	}
 
-	return rgb_
+	return rgb_, nil
 }
 
-func SRGBToOKHSLNormalized(rgb RGBNormalized) HSLNormalized {
+func SRGBToOKHSLNormalized(rgb RGBNormalized) (HSLNormalized, error) {
+	err := rgb.Validate()
+	if err != nil {
+		return HSLNormalized{}, err
+	}
+
 	lab := linearSGBToOKLAB(RGBNormalized{
 		R: srgbTransferFunctionInv(rgb.R),
 		G: srgbTransferFunctionInv(rgb.G),
@@ -287,7 +298,7 @@ func SRGBToOKHSLNormalized(rgb RGBNormalized) HSLNormalized {
 
 	l := toe(L)
 
-	return HSLNormalized{H: h, S: s, L: l}
+	return HSLNormalized{H: h, S: s, L: l}, nil
 }
 
 // Private data types
