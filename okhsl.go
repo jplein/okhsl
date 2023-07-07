@@ -146,14 +146,19 @@ func (r RGB) Validate() error {
 	return nil
 }
 
-func (r RGB) ToHex() string {
+func (r RGB) ToHex() (string, error) {
+	err := r.Validate()
+	if err != nil {
+		return "", err
+	}
+
 	rInt := int(math.Round(r.R))
 	gInt := int(math.Round(r.G))
 	bInt := int(math.Round(r.B))
 
 	c := rInt<<16 + gInt<<8 + bInt
 
-	return fmt.Sprintf("#%6x", c)
+	return fmt.Sprintf("#%6x", c), nil
 }
 
 func (r *RGB) FromHex(hex string) error {

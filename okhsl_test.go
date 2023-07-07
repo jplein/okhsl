@@ -30,7 +30,12 @@ func compare3Tuple(actual, expected []float64, epsilon float64) bool {
 
 func TestRGBHex(t *testing.T) {
 	r := okhsl.RGB{R: 74., G: 99., B: 224.}
-	hex := r.ToHex()
+	hex, err := r.ToHex()
+
+	if err != nil {
+		t.Errorf("unexpected error converting to hex: %s", err.Error())
+	}
+
 	expected := "#4a63e0"
 
 	if hex != expected {
@@ -38,7 +43,7 @@ func TestRGBHex(t *testing.T) {
 	}
 
 	r = okhsl.RGB{R: 0, G: 0, B: 0}
-	err := r.FromHex("#bb6a3e")
+	err = r.FromHex("#bb6a3e")
 
 	if err != nil {
 		t.Errorf("unexpected error reading from hex: %s", err.Error())
